@@ -126,3 +126,10 @@ The #26349 snapshot documented below stays as the fallback image.
   Do not redistribute this image as an official build.
 - Upstream reports: `docs/upstream-report-ac68u-v3.md` (the board) and
   `docs/upstream-report-uhttpd-luci.md` (build/UI findings).
+
+## Screenshots
+
+`images/` holds the AC3200-style set captured from this unit: `luci-login`, `luci-overview`,
+`luci-statistics`, `luci-nlbwmon`, `luci-sqm`, `luci-wireless`, `router-page`, `adguard`.
+Re-capture with `ROUTER=http://<host>:8181 USER=root PASS=... scripts/screenshots.sh`
+(radios on while capturing, then `wifi-radio off`).
