@@ -1,5 +1,21 @@
 # Changelog
 
+## v3 — project page, branding, authenticated UI
+
+- **Services → ★ RT-AC68U**: the project page is a LuCI view (login required by
+  construction), showing radio state, hardware (femctrl 6, table 0x0a link), service states,
+  recovery steps, a first-5-minutes checklist, and a Wi-Fi QR when a radio is on.
+- **Footer badge on every page**: `patches/luci-footer-badge.patch` adds a fixed
+  "★ RT-AC68U project" link to the LuCI base footer (theme-independent).
+- **Branding**: `DISTRIB_DESCRIPTION` and `os-release PRETTY_NAME` become
+  `OpenWrt 25.12 (r0-25058cf) · RT-AC68U V3 mod by ImAthanasia`; the DTS model string gains
+  `, mod by ImAthanasia`.
+- **Baked default credentials**: `root / changeme` (printed on the page, change with
+  `passwd`).
+- `qrencode` added for the Wi-Fi QR. Radios still ship off; the QR only appears when one is on.
+- Docs: `use-cases.md`, `limitations.md`, `optional-packages.md`, `discoveries.md`,
+  `r7000-probe-plan.md`, `ac3200-backport.md`; screenshot script under `scripts/`.
+
 ## v2 — homelab feature set, radios off by default
 
 - **Radios stay off unless asked.** `wifi-radio on|off|status` (`/usr/sbin/wifi-radio`)

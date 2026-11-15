@@ -1,7 +1,9 @@
 
-> **v2 homelab build (2026-11-15):** `images/openwrt-AC68U-V3-homelab-v2.trx` —
-> 52,428,800 B, sha256 `4b2ca1c10e408780…`, 378 packages. The radios are **off by default**
-> (`wifi-radio on|off|status`); Tailscale stays off until it has a node key. See
+> **v3 build (2026-11-15):** `images/openwrt-AC68U-V3-homelab-v3.trx` — 52,428,800 B,
+> sha256 `15eb4cd5c9da83bf…`, 379 packages. Project page **Services → ★ RT-AC68U** (login
+> required), footer badge on every LuCI page, version string and DTS model credit the project,
+> default login `root / changeme`. Radios stay **off** (`wifi-radio on|off|status`); Tailscale
+> stays off until it has a node key. See
 > [`CHANGELOG.md`](CHANGELOG.md) and [`docs/features-preview.html`](docs/features-preview.html).
 
 # ASUS RT-AC68U V3 — OpenWrt with open-source BCM4360 Wi-Fi

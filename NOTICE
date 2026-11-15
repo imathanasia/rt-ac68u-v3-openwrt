@@ -1,0 +1,11 @@
+Project and packaging: ImAthanasia.
+
+Firmware is built from OpenWrt (GPL-2.0) with flatstik's AC-PHY b43 work
+(branch b43-ac-phy of https://github.com/flatstik/AC66U_B1), which in turn
+builds on aleferri/b43-ac-wip. The in-router page, docs, build scripts and
+images in this repository are MIT licensed (see LICENSE); binder/firmware
+binaries distributed through Releases remain under their upstream licenses.
+
+Hardware read-back data (PHY table 0x0a, phyreg 0x040a = 0x0532) was captured
+on this unit with the wl-mmio-trap and is published in
+https://github.com/aleferri/b43-ac-wip/issues/50.
