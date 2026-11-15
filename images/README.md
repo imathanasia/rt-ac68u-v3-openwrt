@@ -10,6 +10,9 @@ page). Re-capture with `ROUTER=http://<host>:8181 USER=root PASS=... scripts/scr
 | `luci-statistics.png` | Statistics → Graphs |
 | `luci-nlbwmon.png` | Statistics → nlbwmon |
 | `luci-sqm.png` | Services → SQM |
-| `luci-wireless.png` | Network → Wireless (captured with radios on) |
-| `router-page.png` | Services → ★ RT-AC68U (the baked project page) |
+| `luci-wireless.png` | Network → Wireless (captured with radios on, both APs up) |
+| `router-page.png` | Services → ★ RT-AC68U (baked project page; captured with radios on, so the Wi-Fi QR is visible) |
 | `adguard.png` | AdGuard Home UI |
+
+All shots except `luci-login.png` are taken after logging in; the script fails a page that
+returns 404 or the login form, so a broken path cannot silently ship a blank screenshot.
