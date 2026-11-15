@@ -1,6 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="128" height="20" role="img" aria-label="kernel: 6.12.116">
-<rect width="128" height="20" rx="3" fill="#233043"/>
-<rect x="60" width="68" height="20" rx="3" fill="#2ea043"/>
-<rect x="56" width="6" height="20" fill="#2ea043"/>
-<g fill="#e6edf3" font-family="Verdana,DejaVu Sans,sans-serif" font-size="11">
-<text x="10" y="14">kernel</text><text x="66" y="14">6.12.116</text></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="145" height="28" viewBox="0 0 145 28"><rect width="145" height="28" rx="6" fill="#101826" stroke="#22304a"/><text x="10" y="19" font-family="system-ui,sans-serif" font-size="12" fill="#8b98a9">kernel</text><text x="60" y="19" font-family="system-ui,sans-serif" font-size="12" font-weight="700" fill="#58a6ff">6.18.60</text></svg>

@@ -1,4 +1,15 @@
-# Changelog
+## v3.1 — page fixes after first-boot review
+
+- **Theme**: `luci.main.mediaurlbase` pointed at `/luci-static/openwrt.org`, which this image does
+  not ship, so every page ran in LuCI's *theme fallback*; pinned to `/luci-static/bootstrap`.
+- **Project page**: load average was printed in 16.16 fixed point (×65536), RAM in KB labelled MB,
+  and radios were reported from uci instead of the live AP state. Service tiles read the wrong
+  ubus shape, so everything said "not installed"; now uses `service list {name:"*",verbose:true}`
+  and real `network.wireless status`, with corrected init-script names.
+- **Content**: recovery now names ASUS **Firmware Restoration** and the WPS NVRAM clear, and says
+  plainly that this board has no sysupgrade image; the old "first 5 minutes" list became a Quick
+  start with links that exist.
+- Diagnostics for the above: `docs/discoveries.md`.
 
 ## v3 — project page, branding, authenticated UI
 
