@@ -1,0 +1,3 @@
+images/*.trx
+*.log
+build.log*

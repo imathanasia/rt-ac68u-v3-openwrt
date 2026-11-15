@@ -1,0 +1,54 @@
+diff -ruN a/arch/arm/boot/dts/broadcom/Makefile b/arch/arm/boot/dts/broadcom/Makefile
+--- a/arch/arm/boot/dts/broadcom/Makefile	2026-11-14 14:25:45.068766695 +0000
++++ b/arch/arm/boot/dts/broadcom/Makefile	2026-11-14 14:25:45.084766823 +0000
+@@ -78,6 +78,7 @@
+ 	bcm4709-netgear-r8000.dtb \
+ 	bcm4709-tplink-archer-c9-v1.dtb \
+ 	bcm47094-asus-rt-ac3100.dtb \
++	bcm47094-asus-rt-ac68u-v3.dtb \
+ 	bcm47094-asus-rt-ac5300.dtb \
+ 	bcm47094-asus-rt-ac88u.dtb \
+ 	bcm47094-dlink-dir-885l.dtb \
+diff -ruN a/arch/arm/boot/dts/broadcom/bcm47094-asus-rt-ac68u-v3.dts b/arch/arm/boot/dts/broadcom/bcm47094-asus-rt-ac68u-v3.dts
+--- a/arch/arm/boot/dts/broadcom/bcm47094-asus-rt-ac68u-v3.dts	1970-01-01 00:00:00.000000000 +0000
++++ b/arch/arm/boot/dts/broadcom/bcm47094-asus-rt-ac68u-v3.dts	2026-11-14 14:25:45.087766847 +0000
+@@ -0,0 +1,39 @@
++// SPDX-License-Identifier: (GPL-2.0-only OR MIT)
++/*
++ * DTS for Asus RT-AC68U V3
++ *
++ * Hardware facts read off the running unit (2026-11-14, OpenWrt 25.12 dmesg):
++ *   - bcma reports chip id 53030 (BCM47094 family), package 0x02
++ *   - the Ethernet switch is a BCM53011 (rev 0), not the BCM53012
++ *   - 2x BCM4360 radios on PCIe (bus 1 and bus 2), SPROM revision 11
++ *   - 128 MiB Macronix MX30LF1G18AC NAND, BCH-8, 2 KiB pages
++ *   - NVRAM productid "RT-AC68U", boardrev 0x1103
++ *
++ * The upstream "asus,rt-ac68u" DTS targets the older 53010 die with a
++ * BCM53012 switch, so this board needs the BCM47094 pinmux and the Bx USB 3.0
++ * PHY, the same two overrides upstream uses for the Netgear R6400 v2, the
++ * other 53030 board. With the older Ax USB 3.0 PHY a SuperSpeed device is
++ * never detected.
++ */
++
++/dts-v1/;
++
++#include "bcm4708-asus-rt-ac68u.dts"
++
++/ {
++	compatible = "asus,rt-ac68u-v3", "brcm,bcm47094", "brcm,bcm4708";
++	model = "Asus RT-AC68U V3 (BCM47094)";
++};
++
++&pinctrl {
++	compatible = "brcm,bcm4709-pinmux";
++
++	pinmux_mdio: mdio-pins {
++		groups = "mdio_grp";
++		function = "mdio";
++	};
++};
++
++&usb3_phy {
++	compatible = "brcm,ns-bx-usb3-phy";
++};

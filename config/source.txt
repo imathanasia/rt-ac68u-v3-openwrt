@@ -1,0 +1,3 @@
+25058cf725f1994e5d5b4f012d321ecec5ef413d 2026-11-10 01:42:56 +0200 mac80211: b43: add AC-PHY support from b43-ac-wip
+origin	https://github.com/flatstik/AC66U_B1.git (fetch)
+origin	https://github.com/flatstik/AC66U_B1.git (push)

@@ -1,0 +1,29 @@
+#!/bin/sh
+# On-demand Wi-Fi for the RT-AC68U V3: nothing is transmitted unless asked.
+set -u
+case "${1:-status}" in
+on)
+	/etc/init.d/ac68u-wifi enable
+	/etc/init.d/ac68u-wifi start
+	logger -t wifi-radio "radios on"
+	;;
+off)
+	/etc/init.d/ac68u-wifi stop 2>/dev/null
+	/etc/init.d/ac68u-wifi disable 2>/dev/null
+	wifi down 2>/dev/null
+	logger -t wifi-radio "radios off"
+	;;
+status)
+	svc=$(/etc/init.d/ac68u-wifi enabled && echo enabled || echo disabled)
+	echo "service: $svc"
+	for p in /sys/class/ieee80211/phy*; do
+		[ -e "$p" ] || continue
+		echo "phy: $(basename $p) $(cat $p/name 2>/dev/null)"
+	done
+	iw dev 2>/dev/null | sed -n 's/^Interface /iface: /p'
+	;;
+*)
+	echo "usage: wifi-radio on|off|status" >&2
+	exit 1
+	;;
+esac
