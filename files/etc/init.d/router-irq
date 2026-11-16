@@ -1,0 +1,90 @@
+#!/bin/sh /etc/rc.common
+# Interrupt affinity for the radios and Ethernet (b43 AC-PHY boards).
+#
+# Why this exists
+# --------------
+# On bcm53xx, OpenWrt does not spread interrupts: the Ethernet MAC and BOTH
+# radios are handled by CPU0, and CPU1 gets nothing.  With the b43 AC-PHY
+# driver that is not a cosmetic problem: a busy 5 GHz radio leaves so little
+# time on CPU0 for the 2.4 GHz radio that its receive ring overflows.  For
+# 30-90 s it then acknowledges nothing, so a client that checks the link
+# disconnects, while the beacons keep going out.  The same effect was seen
+# on the Linksys EA6900 and is documented in the b43-ac build kit.
+#
+# Layout used here:
+#   eth0  (Ethernet MAC)  -> CPU1   (mask 2)
+#   b43   (2.4 GHz radio)  -> CPU1   (mask 2)
+#   b43   (5 GHz radio)    -> CPU0   (mask 1)
+#
+# The 5 GHz radio stays on CPU0 on purpose: if Ethernet is on CPU0 as well, a
+# 5 GHz download loses throughput (about 360 -> 310 Mbit/s on the EA6900),
+# because the Ethernet interrupt raises far fewer counts and irqbalance does
+# not notice the load.
+#
+# The radio interrupts only appear once the AP interfaces are up (b43 opens
+# the device then), so this service waits for them.
+
+START=96
+STOP=10
+USE_PROCD=1
+
+IRQ_AFFINITY_LIST=/etc/router-irq-affinity
+
+# $1 = pattern to match in /proc/interrupts, $2 = CPU mask
+pin_irq() {
+	pattern="$1"
+	mask="$2"
+	irq=$(awk -v p="$pattern" '$0 ~ p { gsub(":", "", $1); print $1; exit }' /proc/interrupts)
+	[ -n "$irq" ] || return 1
+	name=$(awk -v i="$irq:" '$1 == i { print $NF; exit }' /proc/interrupts)
+	echo "$mask" > "/proc/irq/$irq/smp_affinity" 2>/dev/null && \
+		logger -t router-irq "IRQ $irq ($name) -> CPU$( [ "$mask" = 1 ] && echo 0 || echo 1 )"
+}
+
+ban_from_irqbalance() {
+	# irqbalance must not touch the interrupts we pin by hand.
+	uci -q delete irqbalance.irqbalance.banirq 2>/dev/null
+	for irq in $(awk '$0 ~ / (eth0|b43(_next)?)$/ { gsub(":", "", $1); print $1 }' /proc/interrupts | sort -nu); do
+		uci -q add_list irqbalance.irqbalance.banirq="$irq" 2>/dev/null
+	done
+	uci commit irqbalance 2>/dev/null
+	[ -x /etc/init.d/irqbalance ] && /etc/init.d/irqbalance restart
+}
+
+apply_pins() {
+	# optional per-board overrides: "<pattern> <cpu mask>" per line
+	if [ -f "$IRQ_AFFINITY_LIST" ]; then
+		while read -r pattern mask; do
+			case "$pattern" in ''|\#*) continue ;; esac
+			pin_irq "$pattern" "$mask"
+		done < "$IRQ_AFFINITY_LIST"
+	fi
+
+	# Ethernet MAC: keep it off CPU0, together with the 2.4 GHz radio.
+	pin_irq ' eth0$' 2
+
+	# The two b43 radio interrupts, ascending: the 2.4 GHz radio registers
+	# first (PCIe bus 0) and the 5 GHz one second (bus 1), and their GIC
+	# numbers follow that order.
+	b43s=$(awk '$0 ~ / b43(_next)?$/ { gsub(":", "", $1); print $1 }' /proc/interrupts | sort -n)
+	first=$(echo "$b43s" | sed -n '1p')
+	second=$(echo "$b43s" | sed -n '2p')
+	[ -n "$first" ] && pin_irq " $first:" 2
+	[ -n "$second" ] && pin_irq " $second:" 1
+}
+
+start_service() {
+	(
+		# wait for the radio interrupts (they appear with the APs)
+		i=0
+		while [ "$i" -lt 120 ]; do
+			[ "$(grep -cE ' b43(_next)?$' /proc/interrupts)" -ge 2 ] && break
+			sleep 2
+			i=$((i + 1))
+		done
+		sleep 2
+		ban_from_irqbalance
+		sleep 1
+		apply_pins
+	) >/dev/null 2>&1 &
+}

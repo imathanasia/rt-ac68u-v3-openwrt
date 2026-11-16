@@ -1,0 +1,32 @@
+{
+	"luci-app-router": {
+		"description": "Router project page (read-only status; AC68U V3 / R7000)",
+		"read": {
+			"ubus": {
+				"system": [
+					"info",
+					"board"
+				],
+				"service": [
+					"list"
+				],
+				"session": [
+					"access"
+				],
+				"network.wireless": [
+					"status"
+				]
+			},
+			"uci": [
+				"luci",
+				"wireless",
+				"network"
+			],
+			"file": {
+				"exec": {
+					"/usr/bin/qrencode": true
+				}
+			}
+		}
+	}
+}

@@ -1,0 +1,29 @@
+#!/bin/sh /etc/rc.common
+# Optional: mount a UBI volume literally named "flash" at /mnt/flash.
+#
+# The R7000 build no longer needs a separate volume (the 122 MB UBI gives a
+# ~87 MB rootfs_data overlay and services live in /opt), but a device that was
+# previously set up that way still gets its volume mounted.  This never calls
+# ubiattach and never touches the rootfs UBI, so it cannot disturb boot.
+START=25
+STOP=10
+
+start() {
+	local c dev
+	mkdir -p /mnt/flash
+	mountpoint -q /mnt/flash && return 0
+	for c in /sys/class/ubi/ubi*_*; do
+		[ -e "$c" ] || continue
+		[ "$(cat "$c/name" 2>/dev/null)" = "flash" ] || continue
+		dev="ubi${c#/sys/class/ubi/ubi}"
+		dev="${dev%_*}:flash"
+		mount -t ubifs "$dev" /mnt/flash 2>/dev/null
+		break
+	done
+	return 0
+}
+
+stop() {
+	mountpoint -q /mnt/flash && umount /mnt/flash 2>/dev/null
+	return 0
+}

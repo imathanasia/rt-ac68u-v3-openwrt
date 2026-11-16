@@ -1,3 +1,22 @@
+## Unreleased — shared-overlay sync
+
+- Overlay replaced with the board-neutral `router-*` overlay that is now tested on both
+  BCM4709 boards: `router-wifi` (+ `router-wifi.conf`), `router-irq`, `router-status`,
+  `router.html`/`router.js`, `luci-app-router`. This board keeps its `192.168.1.200`
+  AP-mode defaults and `AC68U-V3-*` SSIDs; the 94 alias script still creates the old
+  `ac68u-*` names for existing scripts and bookmarks.
+- New `97-adguard-off.sh`: AdGuard Home no longer starts from the image's rc.d. The build
+  auto-enables every init script, so it is now gated like Wi-Fi and Tailscale and starts only
+  after the binary exists (`adguard-hl enable`). `docs/discoveries.md` explains the mechanism.
+- Footer badge is board-neutral (`router-badge`, "Router project"); the patch is identical in
+  both project repos.
+- Router page text no longer points at a `/root/backups` directory the image does not create.
+- Removed `docs/r7000.md` and `images/r7000/` — R7000 material now lives in
+  `ImAthanasia/netgear-r7000-modern-openwrt`.
+- `screenshots.sh`, `WiFiTest.ps1`, `wifi-test-plan.md` now use the canonical
+  `/admin/services/router` and `/cgi-bin/router-status` paths; `validate.sh` defaults to the
+  shipped v3.1 image and `build.sh` prints whichever AC68U variant was built.
+
 ## v3.1 — page fixes after first-boot review
 
 - **Theme**: `luci.main.mediaurlbase` pointed at `/luci-static/openwrt.org`, which this image does

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Router · OpenWrt</title>
+<style>
+:root{--bg:#0b0f16;--panel:#131a24;--line:#233043;--txt:#e6edf3;--mut:#8b98a9;--acc:#58a6ff;--grn:#3fb950;--amb:#d29922}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(1100px 380px at 15% -10%,#12325a33,transparent),var(--bg);color:var(--txt);font:15px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.w{max-width:960px;margin:0 auto;padding:30px 20px 60px}
+h1{font-size:26px;margin:0 0 4px}h1 small{display:block;color:var(--mut);font-size:13px;font-weight:400;margin-top:4px}
+.badges{display:flex;flex-wrap:wrap;gap:7px;margin:14px 0 22px}
+.b{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:3px 11px;font-size:12.5px;color:var(--mut)}
+.b.g{color:var(--grn);border-color:#1f4a2b}.b.a{color:var(--amb);border-color:#57430f}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:11px}
+a.card{display:flex;gap:11px;align-items:flex-start;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 14px;color:var(--txt);text-decoration:none;transition:.15s}
+a.card:hover{border-color:#3d6ea8;background:#16202c}
+a.card b{display:block;font-size:14.5px;font-weight:600}
+a.card span{display:block;color:var(--mut);font-size:12.5px;margin-top:2px}
+.note{background:#101722;border:1px solid var(--line);border-radius:12px;padding:13px 16px;color:var(--mut);font-size:13.5px;margin-top:22px}
+table{width:100%;border-collapse:collapse;margin-top:8px;font-size:13.5px}
+th,td{text-align:left;padding:6px 9px;border-bottom:1px solid var(--line)}
+th{color:var(--mut);font-weight:500;font-size:12px;text-transform:uppercase;letter-spacing:.5px}
+code{background:#0a0f16;border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:12.5px}
+h2{font-size:13px;color:var(--mut);text-transform:uppercase;letter-spacing:.7px;margin:26px 0 10px}
+</style></head><body><div class="w">
+<h1 id="h1">Router <small>OpenWrt 25.12 · b43-next AC-PHY</small></h1>
+<div class="badges" id="badges"></div>
+
+<div class="grid">
+<a class="card" href="/cgi-bin/luci/admin/services/router"><b>Router project</b><span>model, services, quick start</span></a>
+<a class="card" href="/cgi-bin/luci/admin/status/overview"><b>Overview</b><span>uptime, memory, clients</span></a>
+<a class="card" href="/cgi-bin/luci/admin/network/wireless"><b>Wireless</b><span>radios, channels, country</span></a>
+<a class="card" href="/cgi-bin/luci/admin/network/network"><b>Network</b><span>interfaces, LAN, routes</span></a>
+<a class="card" href="/cgi-bin/luci/admin/system/system"><b>System</b><span>hostname, time, logs</span></a>
+</div>
+
+<h2>Live status</h2>
+<div class="note" id="live">loading…</div>
+
+<h2>Notes</h2>
+<div class="note">
+<b>Wi-Fi</b> uses the out-of-tree <code>b43-next</code> AC-PHY driver. Settings live in
+<code>/etc/router-wifi.conf</code>; apply them with
+<code>/etc/init.d/router-wifi restart</code>. Radios stay off until
+<code>wifi-radio on</code>, so nothing is transmitted by default.<br><br>
+<b>Interrupt affinity</b> is set by <code>/etc/init.d/router-irq</code>: Ethernet and the 2.4 GHz
+radio on CPU1, the 5 GHz radio on CPU0. Without it both radios and Ethernet share CPU0 and the
+2.4 GHz receive ring can overflow under 5 GHz load.<br><br>
+<b>LAN address and recovery</b> differ per board; the <a href="/cgi-bin/luci/admin/services/router">router
+project page</a> shows this unit's address, MAC/CFE notes and the serial + TFTP recovery steps.
+</div>
+</div>
+<script>
+function b(t,c){var d=document.createElement('div');d.className='b'+(c?' '+c:'');d.textContent=t;document.getElementById('badges').appendChild(d)}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function fmt(s){s=Number(s)||0;var u=['B','KiB','MiB','GiB','TiB'],i=0;while(s>=1024&&i<u.length-1){s/=1024;i++}return (i?s.toFixed(1):s)+' '+u[i]}
+function up(s){var d=Math.floor(s/86400),h=Math.floor(s%86400/3600),m=Math.floor(s%3600/60);return (d?d+'d ':'')+h+'h '+m+'m'}
+fetch('/cgi-bin/router-status',{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){
+  if(j.model){document.getElementById('h1').innerHTML=esc(j.model)+' <small>OpenWrt · b43-next AC-PHY</small>'}
+  b(j.model||'router','g');b('up '+up(j.uptime_s));b('load '+esc(j.load));b('RAM free '+j.mem_available_mib+' MiB');
+  (j.temps||[]).forEach(function(t){b(t.zone+' '+t.celsius+'°C')});
+  var h='';
+  if((j.wifi||[]).length){
+    h+='<table><tr><th>radio</th><th>band</th><th>channel</th><th>width</th><th>mode</th><th>tx</th><th>ssid</th></tr>';
+    j.wifi.forEach(function(w){h+='<tr><td>'+esc(w.ifname||w.phy)+'</td><td>'+esc(w.band)+' GHz</td><td>'+esc(w.channel||'-')+'</td><td>'+esc(w.width||'-')+'</td><td>'+esc(w.mode==='Master'?'AP':(w.mode||'-'))+'</td><td>'+esc(w.txpower||'-')+'</td><td>'+esc(w.ssid||'-')+'</td></tr>'});
+    h+='</table>';
+  }else{
+    h+='<div>Radios are off.</div>';
+  }
+  h+='<table><tr><th>interface</th><th>state</th><th>rx</th><th>tx</th></tr>';
+  (j.ifs||[]).forEach(function(i){h+='<tr><td>'+esc(i.name)+'</td><td>'+esc(i.state)+'</td><td>'+fmt(i.rx)+'</td><td>'+fmt(i.tx)+'</td></tr>'});
+  h+='</table>';
+  if((j.storage||[]).length){
+    h+='<table><tr><th>block device</th><th>size</th></tr>';
+    j.storage.forEach(function(s){h+='<tr><td>'+esc(s.name)+'</td><td>'+fmt(s.size_bytes*512)+'</td></tr>'});
+    h+='</table>';
+  }
+  document.getElementById('live').innerHTML=h;
+}).catch(function(e){document.getElementById('live').textContent='status unavailable: '+e});
+</script></body></html>

@@ -6,14 +6,14 @@
   AC‑PHY rev 1, radio `0x2069` rev 4, **no `-95`**.
 - The image configures the APs itself on first boot:
   `AC68U-V3-2G` channel 1 / HT20 / 20 dBm, `AC68U-V3-5G` channel 36 / VHT80 / 23 dBm.
-- LuCI: login + overview HTTP 200. Dashboard `http://192.168.1.200/ac68u.html` HTTP 200.
+- LuCI: login + overview HTTP 200. Dashboard `http://192.168.1.200/router.html` HTTP 200 (legacy `/ac68u.html` redirects).
 - Interrupt pinning active: eth0 + 2.4 GHz radio on CPU1, 5 GHz radio on CPU0.
 - DNS: dnsmasq → AdGuard Home (191k filter rules) → Quad9 DoH.
 
 ## Remaining: client throughput and contention
 
 From a laptop/phone joined to `<SSID>-2G` and `<SSID>-5G` (default key `change-me-now`,
-change it first in `/etc/ac68u-wifi.conf`):
+change it first in `/etc/router-wifi.conf`):
 
 ```sh
 iperf3 -c 192.168.1.200 -P 4      # client -> router
@@ -30,9 +30,9 @@ that a 2.4 GHz client stays associated and still passes traffic. Without the pin
 the client drops while beacons keep going out.
 
 ```sh
-ac68u-wifi-test            # radios, IRQ spread, driver health, overflow/restart counters
-ac68u-wifi-test --watch    # follow the radio interrupts live
-ac68u-wifi-test --iperf    # start an iperf3 server on the router
+router-wifi-test            # radios, IRQ spread, driver health, overflow/restart counters
+router-wifi-test --watch    # follow the radio interrupts live
+router-wifi-test --iperf    # start an iperf3 server on the router
 ```
 
 ## Still open

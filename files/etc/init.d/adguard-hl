@@ -1,0 +1,18 @@
+#!/bin/sh /etc/rc.common
+USE_PROCD=1
+START=95
+DIR=/opt/adguard
+start_service() {
+	[ -x "$DIR/AdGuardHome" ] || return 0
+
+	# dnsmasq must release :53 first, otherwise AdGuard exits on bind and
+	# procd respawns it forever without saying why.
+	[ "$(uci -q get dhcp.@dnsmasq[0].port)" = "0" ] || \
+		logger -t adguard-hl "dnsmasq still owns :53 - run: uci set dhcp.@dnsmasq[0].port=0 && uci commit dhcp && /etc/init.d/dnsmasq restart"
+	procd_open_instance
+	procd_set_param command "$DIR/AdGuardHome" --no-check-update -c "$DIR/AdGuardHome.yaml" --work-dir "$DIR"
+	procd_set_param respawn 3600 5 0
+	procd_set_param stdout 1
+	procd_set_param stderr 1
+	procd_close_instance
+}

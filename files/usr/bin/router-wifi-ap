@@ -1,0 +1,31 @@
+#!/bin/sh
+# Enable a WPA2 AP on every radio the b43 AC-PHY driver exposes.
+# Usage:  router-wifi-ap "MySSID" "my-password" [extra-ssid]
+# Run after boot (the radios appear once the core-rev-42 firmware loads).
+set -eu
+SSID=${1:-OpenWrt}
+KEY=${2:-change-me-now}
+EXTRA=${3:-}
+
+[ -f /etc/config/wireless ] || wifi config
+
+for d in $(uci show wireless | sed -n "s/^wireless\.\([^.]*\)=wifi-device$/\1/p"); do
+	uci set wireless.$d.disabled='0'
+done
+
+n=0
+for i in $(uci show wireless | sed -n "s/^wireless\.\([^.]*\)=wifi-iface$/\1/p"); do
+	[ "$(uci -q get wireless.$i.mode || true)" = "ap" ] || continue
+	n=$((n+1))
+	name="$SSID"
+	[ -n "$EXTRA" ] && [ "$n" -gt 1 ] && name="$EXTRA"
+	uci set wireless.$i.disabled='0'
+	uci set wireless.$i.ssid="$name"
+	uci set wireless.$i.encryption='psk2'
+	uci set wireless.$i.key="$KEY"
+done
+
+[ "$n" -gt 0 ] || { echo "no AP interfaces found; check 'iw dev' and dmesg | grep b43"; exit 1; }
+uci commit wireless
+wifi reload
+echo "enabled $n AP interface(s) as $SSID"

@@ -35,5 +35,5 @@ fi
 
 FORCE_UNSAFE_CONFIGURE=1 make -j"$(nproc)"
 
-ls -l bin/targets/bcm53xx/generic/openwrt-bcm53xx-generic-asus_rt-ac68u-squashfs.trx
-sha256sum bin/targets/bcm53xx/generic/openwrt-bcm53xx-generic-asus_rt-ac68u-squashfs.trx
+ls -l bin/targets/bcm53xx/generic/openwrt-bcm53xx-generic-asus_rt-ac68u*-squashfs.trx
+sha256sum bin/targets/bcm53xx/generic/openwrt-bcm53xx-generic-asus_rt-ac68u*-squashfs.trx

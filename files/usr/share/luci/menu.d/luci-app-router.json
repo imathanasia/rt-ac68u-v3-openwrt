@@ -1,0 +1,15 @@
+{
+	"admin/services/router": {
+		"title": "\u2605 Router project",
+		"order": 99,
+		"action": {
+			"type": "view",
+			"path": "router"
+		},
+		"depends": {
+			"acl": [
+				"luci-app-router"
+			]
+		}
+	}
+}

@@ -11,7 +11,7 @@ page). Re-capture with `ROUTER=http://<host>:8181 USER=root PASS=... scripts/scr
 | `luci-nlbwmon.png` | Statistics → nlbwmon |
 | `luci-sqm.png` | Services → SQM |
 | `luci-wireless.png` | Network → Wireless (captured with radios on, both APs up) |
-| `router-page.png` | Services → ★ RT-AC68U (baked project page; captured with radios on, so the Wi-Fi QR is visible) |
+| `router-page.png` | Services → ★ Router project (baked page, `/admin/services/router`; captured with radios on, so the Wi-Fi QR is visible) |
 | `adguard.png` | AdGuard Home UI |
 
 All shots except `luci-login.png` are taken after logging in; the script fails a page that

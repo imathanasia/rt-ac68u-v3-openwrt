@@ -1,0 +1,20 @@
+#!/bin/sh
+# Downlink throughput endpoint: streams N MiB of zeros.
+#   /cgi-bin/speed-down?mb=16
+# Used by WiFiTest.ps1.  Kept small and dependency-free (dd from /dev/zero).
+
+# Disabled unless the operator opts in for throughput tests:
+#   touch /etc/wifi-test.enabled
+[ -e /etc/wifi-test.enabled ] || { printf 'Status: 404 Not Found\r\nContent-Type: text/plain\r\n\r\n'; exit 0; }
+MB=64
+q="${QUERY_STRING:-}"
+case "$q" in
+	*mb=*) MB="${q#*mb=}"; MB="${MB%%&*}" ;;
+esac
+case "$MB" in
+	''|*[!0-9]*) MB=16 ;;
+esac
+[ "$MB" -gt 64 ] && MB=64
+
+printf 'Status: 200 OK\r\nContent-Type: application/octet-stream\r\nCache-Control: no-store\r\n\r\n'
+dd if=/dev/zero bs=65536 count=$((MB * 16)) 2>/dev/null

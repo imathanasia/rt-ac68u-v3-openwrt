@@ -1,5 +1,5 @@
 #!/bin/sh /etc/rc.common
-# AC68U V3 - wireless bring-up.
+# Wireless bring-up for the b43 AC-PHY boards (RT-AC68U V3, R7000).
 #
 # The b43 AC-PHY driver registers both radios about 15 s after boot.  OpenWrt
 # generates /etc/config/wireless when a phy shows up, but the generated AP
@@ -7,12 +7,12 @@
 # nothing and no AP is broadcast until something configures them.  This
 # service does that once, on the first boot.
 #
-# This board: BCM47094 / BCM53011, two BCM4360 (d11 core rev 42, AC-PHY rev 1,
-# radio 0x2069 rev 4), femctrl 6.
+# Both supported boards pair a Broadcom 47xx-era SoC with two BCM4360
+# (d11 core rev 42, AC-PHY rev 1, radio 0x2069 rev 4), femctrl 6.
 #   radio0 = 2.4 GHz 3x3  -> HT20,  channel 1
 #   radio1 = 5 GHz   3x3  -> VHT80, channel 36 (5180 MHz)
 #
-# Settings live in /etc/ac68u-wifi.conf (SSID / KEY / COUNTRY / channels).
+# Settings live in /etc/router-wifi.conf (SSID / KEY / COUNTRY / channels).
 # A placeholder key is shipped - change it before exposing the AP.
 
 START=95
@@ -39,8 +39,9 @@ radio_band() {
 setup_wifi() {
 	. /lib/functions.sh
 
-	[ -f /etc/ac68u-wifi.conf ] || return 1
-	. /etc/ac68u-wifi.conf
+	CONF=/etc/router-wifi.conf
+	[ -f "$CONF" ] || return 1
+	. "$CONF"
 
 	[ -f /etc/config/wireless ] || wifi config
 	[ -f /etc/config/wireless ] || return 1
@@ -86,9 +87,15 @@ setup_wifi() {
 
 	uci commit wireless
 	wifi reload
-	logger -t ac68u-wifi "configured ${SSID}-2G (ch ${CH_2G:-1} HT20) and ${SSID}-5G (ch ${CH_5G:-36} ${HTMODE_5G:-VHT80})"
+	logger -t router-wifi "configured ${SSID}-2G (ch ${CH_2G:-1} HT20) and ${SSID}-5G (ch ${CH_5G:-36} ${HTMODE_5G:-VHT80})"
 }
 
 start_service() {
+	# Only the two supported b43 AC-PHY boards are configured here.
+	case "$(cat /tmp/sysinfo/board_name 2>/dev/null)" in
+		asus,rt-ac68u-v3|netgear,r7000) ;;
+		*) return 0 ;;
+	esac
+
 	( wait_for_radios && setup_wifi ) >/dev/null 2>&1 &
 }

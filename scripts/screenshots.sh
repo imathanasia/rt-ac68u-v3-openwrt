@@ -19,7 +19,7 @@ const PAGES = [
   ['/cgi-bin/luci/admin/services/nlbw',     'luci-nlbwmon',    false],
   ['/cgi-bin/luci/admin/network/sqm',       'luci-sqm',        false],
   ['/cgi-bin/luci/admin/network/wireless',  'luci-wireless',   false],
-  ['/cgi-bin/luci/admin/services/rtac68u',  'router-page',     true ],
+  ['/cgi-bin/luci/admin/services/router',  'router-page',     true ],
   ['/cgi-bin/luci/admin/services/adguardhome', 'adguard',      false]
 ];
 

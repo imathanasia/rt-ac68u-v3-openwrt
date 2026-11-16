@@ -90,7 +90,7 @@ recovery:
 | Address | `192.168.1.200` (AP mode, upstream `192.168.1.1`, DHCP off) |
 | Login | `root` / `changeme` — change it with `passwd` |
 | Radios | off; `wifi-radio on` when you want Wi-Fi |
-| Page | *Services → ★ RT-AC68U* (`/cgi-bin/luci/admin/services/rtac68u`) |
+| Page | *Services → ★ Router project* (`/cgi-bin/luci/admin/services/router`; the old `rtac68u` path redirects) |
 
 ## Documentation
 

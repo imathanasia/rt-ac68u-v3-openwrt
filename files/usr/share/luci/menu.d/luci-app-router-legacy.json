@@ -1,0 +1,7 @@
+{
+	"admin/services/rtac68u": {
+		"order": 99,
+		"action": { "type": "rewrite", "remove": 3, "path": "admin/services/router" },
+		"depends": { "acl": [ "luci-app-router" ] }
+	}
+}

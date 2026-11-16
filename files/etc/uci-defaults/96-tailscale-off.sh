@@ -1,7 +1,8 @@
 #!/bin/sh
-# Tailscale stays off until it has a node key: an unauthenticated tailscaled
-# just retries in the background.  After "tailscale up" once:
-#   /etc/init.d/tailscale enable && /etc/init.d/tailscale start
-/etc/init.d/tailscale disable 2>/dev/null
-/etc/init.d/tailscale stop 2>/dev/null
+# Tailscale is opt-in: the binary ships (or is staged in /opt/tailscale) but
+# does not start until it has a node key.  After copying it in:
+#   touch /opt/tailscale/enabled && /etc/init.d/tailscale-hl start
+#   tailscale --socket=/tmp/tailscaled.sock up
+/etc/init.d/tailscale-hl disable 2>/dev/null
+/etc/init.d/tailscale-hl stop 2>/dev/null
 exit 0

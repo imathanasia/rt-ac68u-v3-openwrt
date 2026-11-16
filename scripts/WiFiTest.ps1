@@ -122,7 +122,7 @@ Section "Router HTTP"
 $statusJson = $null
 try {
     $sw = [System.Diagnostics.Stopwatch]::StartNew()
-    $resp = Invoke-WebRequest -Uri ("http://{0}/cgi-bin/ac68u-status" -f $Router) -UseBasicParsing -TimeoutSec 10
+    $resp = Invoke-WebRequest -Uri ("http://{0}/cgi-bin/router-status" -f $Router) -UseBasicParsing -TimeoutSec 10
     $sw.Stop()
     Kv "status_cgi" ("HTTP {0} in {1} ms" -f $resp.StatusCode, $sw.ElapsedMilliseconds)
     $statusJson = $resp.Content | ConvertFrom-Json

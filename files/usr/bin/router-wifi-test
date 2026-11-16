@@ -1,0 +1,82 @@
+#!/bin/sh
+# Wi-Fi health check (b43 AC-PHY boards).
+#
+# Answers the question "is the wireless actually working and is it healthy?"
+# without needing a laptop on the box:
+#
+#   router-wifi-test           summary
+#   router-wifi-test --watch   follow the counters
+#   router-wifi-test --iperf   start an iperf3 server on both radios
+#
+# On a laptop, test with:
+#   iperf3 -c <router-ip> -P 4      (TCP)
+#   iperf3 -c <router-ip> -P 4 -R   (reverse)
+#
+# The 2.4 GHz radio has to survive a busy 5 GHz radio: that is what the
+# interrupt pinning in /etc/init.d/router-irq is for.  A 2.4 GHz client that
+# "keeps disconnecting" while 5 GHz is busy is the symptom.
+
+red() { printf '\033[31m%s\033[0m\n' "$1"; }
+grn() { printf '\033[32m%s\033[0m\n' "$1"; }
+amb() { printf '\033[33m%s\033[0m\n' "$1"; }
+
+radios() {
+	iw dev 2>/dev/null | awk '/^phy#/{p=$1} /Interface/{print p, $2}'
+}
+
+summary() {
+	echo "== radios =="
+	iw dev 2>/dev/null | grep -E '^phy#|Interface|ssid|channel|type ' | sed 's/^/  /'
+	echo
+	echo "== interrupt spread (radio IRQs must not all sit on CPU0) =="
+	grep -E ' (b43|eth0)$' /proc/interrupts | sed 's/^/  /'
+	echo
+	echo "== driver health =="
+	if dmesg | grep -qi 'b43: probe.*failed\|ERROR: FOUND UNSUPPORTED PHY'; then
+		red   "  b43 probe errors found - run 'dmesg | grep -i b43'"
+	else
+		grn   "  b43 probe OK"
+	fi
+	if dmesg | grep -qi 'Controller restarted\|ucode.*fatal'; then
+		amb "  restarts/fatal ucode events in dmesg - see 'dmesg | grep -i -e restarted -e ucode'"
+	else
+		grn "  no controller restarts"
+	fi
+	echo
+	echo "== 2.4 GHz RX ring overflow (means the radio was starved) =="
+	ovf=$(dmesg | grep -ci 'ring.*overflow\|no ack' 2>/dev/null)
+	if [ "${ovf:-0}" -gt 0 ]; then
+		amb "  $ovf overflow/no-ack messages - check /etc/init.d/router-irq"
+	else
+		grn "  none"
+	fi
+	echo
+	echo "== interfaces =="
+	ip -br link show 2>/dev/null | sed 's/^/  /'
+	echo
+	echo "== load / memory =="
+	echo "  $(cat /proc/loadavg)"
+	echo "  $(awk '/MemAvailable/{printf "MemAvailable %d KiB", $2}' /proc/meminfo)"
+}
+
+watch() {
+	echo "following radio interrupts (Ctrl-C to stop)"
+	watch -n1 "grep -E ' (b43|eth0)$' /proc/interrupts; echo; iw dev 2>/dev/null | grep -E 'ssid|channel|txpower'"
+}
+
+iperf() {
+	command -v iperf3 >/dev/null || { red "iperf3 is not installed"; exit 1; }
+	ip4=$(ip -4 -o addr show br-lan 2>/dev/null | awk '{print $4}' | cut -d/ -f1)
+	[ -n "$ip4" ] || { red "no address on br-lan"; exit 1; }
+	echo "starting iperf3 server on $ip4:5201"
+	iperf3 -s -1 -p 5201 &
+	sleep 1
+	echo "from a client:  iperf3 -c $ip4 -P 4   and   iperf3 -c $ip4 -P 4 -R"
+	wait
+}
+
+case "$1" in
+	--watch) watch ;;
+	--iperf) iperf ;;
+	*) summary ;;
+esac

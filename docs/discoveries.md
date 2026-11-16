@@ -19,7 +19,7 @@
 - **LuCI answered 403** (`x-luci-login-required: yes`) until `root` had a password: an
   OpenWrt image with an empty root password lets SSH in but LuCI refuses the session.
   Set it with `passwd`, then restart `rpcd` and `uhttpd`.
-- **Radios off by default** is not enough to be silent: `ac68u-wifi` is disabled and
+- **Radios off by default** is not enough to be silent: `router-wifi` is disabled and
   `/etc/uci-defaults/95-wifi-off.sh` forces every `wifi-device` to `disabled=1`.
   `wifi-radio on|off|status` is the only switch needed.
 - **Tailscale** ran unauthenticated at every boot; now disabled until a node key exists

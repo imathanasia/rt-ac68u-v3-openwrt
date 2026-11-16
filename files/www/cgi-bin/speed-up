@@ -1,0 +1,13 @@
+#!/bin/sh
+# Uplink throughput endpoint: reads and discards the POST body, then reports
+# how many bytes arrived.
+#   POST /cgi-bin/speed-up
+# Used by WiFiTest.ps1.
+
+# Disabled unless the operator opts in for throughput tests:
+#   touch /etc/wifi-test.enabled
+[ -e /etc/wifi-test.enabled ] || { printf 'Status: 404 Not Found\r\nContent-Type: text/plain\r\n\r\n'; exit 0; }
+bytes=$(wc -c)
+
+printf 'Status: 200 OK\r\nContent-Type: application/json\r\nCache-Control: no-store\r\n\r\n'
+printf '{"received_bytes":%s}\n' "${bytes:-0}"

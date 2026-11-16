@@ -19,5 +19,5 @@ The AC-PHY patches and this repo's page/branding port 1:1.
 - Thermal/load baseline: `uptime`, `free -m`, `/sys/class/thermal/*`.
 
 ## Build
-`CFG=config/config.r7000-dev scripts/build.sh` once a device config exists; profile
+`CFG=config/config.r7000 scripts/build.sh` with a R7000 device config; profile
 `netgear_r7000` in bcm53xx. Image is a `.chk`.

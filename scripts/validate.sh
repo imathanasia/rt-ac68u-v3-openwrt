@@ -2,7 +2,7 @@
 # Static validation of the experimental AC-PHY image. No device access.
 set -eu
 HERE=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
-IMG=${IMG:-$HERE/../broadcom-firmware/ac68u-v3-experimental/openwrt-bcm53xx-generic-asus_rt-ac68u-squashfs.trx}
+IMG=${IMG:-$HERE/images/openwrt-AC68U-V3-homelab-v3.1.trx}
 TREE=${TREE:-$HERE/../openwrt-acphy}
 
 echo "== size / hash"

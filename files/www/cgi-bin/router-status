@@ -1,0 +1,97 @@
+#!/bin/sh
+# Board-neutral live status for the static page (/www/router.html).
+#
+# Prints one JSON object.  uhttpd (2026.11) expects CGI-style headers
+# before the body, otherwise it answers 502 "Bad Gateway".
+
+printf 'Status: 200 OK\r\nContent-Type: application/json\r\nCache-Control: no-store\r\n\r\n'
+
+json_escape() {
+	sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\r//g'
+}
+
+MODEL="$(tr -d '\000' < /proc/device-tree/model 2>/dev/null)"
+BOARD="$(cat /tmp/sysinfo/board_name 2>/dev/null)"
+[ -n "$MODEL" ] || MODEL="$BOARD"
+
+# temperatures
+temps=""
+for z in /sys/class/thermal/thermal_zone*; do
+	[ -r "$z/temp" ] || continue
+	t=$(cat "$z/temp" 2>/dev/null)
+	name=$(cat "$z/type" 2>/dev/null)
+	[ -n "$t" ] && temps="$temps{\"zone\":\"$(echo "$name" | json_escape)\",\"celsius\":\"$(awk -v v="$t" 'BEGIN{printf "%.1f", v/1000}')\"},"
+done
+
+# interfaces
+ifs=""
+for i in /sys/class/net/*; do
+	n=$(basename "$i")
+	[ "$n" = "lo" ] && continue
+	state=$(cat "$i/operstate" 2>/dev/null)
+	mc=$(cat "$i/mtu" 2>/dev/null)
+	rx=$(cat "$i/statistics/rx_bytes" 2>/dev/null)
+	tx=$(cat "$i/statistics/tx_bytes" 2>/dev/null)
+	ifs="$ifs{\"name\":\"$n\",\"state\":\"$state\",\"mtu\":${mc:-0},\"rx\":${rx:-0},\"tx\":${tx:-0}},"
+done
+
+# wifi - one row per AP interface, from iwinfo (falls back to iw dev)
+wifi=""
+if command -v iwinfo >/dev/null 2>&1; then
+	for n in /sys/class/net/*; do
+		i=$(basename "$n")
+		case "$i" in *ap*) ;; *) continue ;; esac
+		info=$(iwinfo "$i" info 2>/dev/null) || continue
+		ssid=$(echo "$info" | sed -n 's/.*ESSID: "\([^"]*\)".*/\1/p' | head -n1)
+		mode=$(echo "$info" | sed -n 's/^ *Mode: \([^ ]*\).*/\1/p' | head -n1)
+		ch=$(echo "$info" | sed -n 's/^ *Mode: .*Channel: \([0-9]*\).*/\1/p' | head -n1)
+		ht=$(echo "$info" | sed -n 's/^ *Mode: .*HT Mode: \([^ ]*\).*/\1/p' | head -n1)
+		tx=$(echo "$info" | sed -n 's/^ *Tx-Power: \([0-9]*\).*/\1/p' | head -n1)
+		band="5"
+		[ -n "$ch" ] && [ "$ch" -le 14 ] 2>/dev/null && band="2.4"
+		wifi="$wifi{\"ifname\":\"$i\",\"band\":\"$band\",\"channel\":\"$ch\",\"width\":\"$(echo "$ht" | json_escape)\",\"mode\":\"$(echo "$mode" | json_escape)\",\"txpower\":\"$tx\",\"ssid\":\"$(echo "$ssid" | json_escape)\"},"
+	done
+elif command -v iw >/dev/null 2>&1; then
+	for n in /sys/class/net/*; do
+		i=$(basename "$n")
+		case "$i" in *ap*) ;; *) continue ;; esac
+		ch=$(iw dev "$i" info 2>/dev/null | sed -n 's/^[[:space:]]*channel \([0-9]*\).*/\1/p' | head -n1)
+		tx=$(iw dev "$i" info 2>/dev/null | sed -n 's/^[[:space:]]*txpower \([0-9.]*\).*/\1/p' | head -n1)
+		ssid=$(iw dev "$i" info 2>/dev/null | sed -n 's/^[[:space:]]*ssid \(.*\)/\1/p' | head -n1)
+		band="5"
+		[ -n "$ch" ] && [ "$ch" -le 14 ] 2>/dev/null && band="2.4"
+		wifi="$wifi{\"ifname\":\"$i\",\"band\":\"$band\",\"channel\":\"$ch\",\"width\":\"\",\"mode\":\"AP\",\"txpower\":\"$tx\",\"ssid\":\"$(echo "$ssid" | json_escape)\"},"
+	done
+fi
+
+# usb devices
+usb=""
+for d in /sys/bus/usb/devices/*/idVendor; do
+	[ -r "$d" ] || continue
+	dev=$(dirname "$d")
+	v=$(cat "$dev/idVendor" 2>/dev/null)
+	p=$(cat "$dev/idProduct" 2>/dev/null)
+	m=$(cat "$dev/product" 2>/dev/null)
+	s=$(cat "$dev/speed" 2>/dev/null)
+	usb="$usb{\"product\":\"$(echo "$m" | json_escape)\",\"vid\":\"$v\",\"pid\":\"$p\",\"speed\":\"${s}M\"},"
+done
+
+# block devices
+storage=""
+for d in /sys/class/block/*; do
+	[ -d "$d" ] || continue
+	n=$(basename "$d")
+	sz=$(cat "$d/size" 2>/dev/null)
+	[ -z "$sz" ] && continue
+	rot=$(cat "$d/queue/rotational" 2>/dev/null)
+	storage="$storage{\"name\":\"$n\",\"size_bytes\":$sz,\"rotational\":${rot:-0}},"
+done
+
+uptime_s=$(cut -d. -f1 /proc/uptime)
+load=$(cut -d' ' -f1-3 /proc/loadavg)
+mem_mib=$(awk '/MemAvailable/{printf "%d", $2/1024}' /proc/meminfo)
+
+printf '{"hostname":"%s","model":"%s","board":"%s","uptime_s":%s,"load":"%s","mem_available_mib":%s,"temps":[%s],"ifs":[%s],"wifi":[%s],"usb":[%s],"storage":[%s]}\n' \
+	"$(uname -n)" "$(echo "$MODEL" | json_escape)" "$(echo "$BOARD" | json_escape)" \
+	"${uptime_s:-0}" "$(echo "$load" | json_escape)" "${mem_mib:-0}" \
+	"${temps%,}" "${ifs%,}" "${wifi%,}" "${usb%,}" "${storage%,}"
