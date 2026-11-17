@@ -1,4 +1,4 @@
-# Screenshots
+# Screenshots and artifacts
 
 Captured from this unit with headless Chromium (1440×900, 2× scale, full page for the project
 page). Re-capture with `ROUTER=http://<host>:8181 USER=root PASS=... scripts/screenshots.sh`.
@@ -16,3 +16,6 @@ page). Re-capture with `ROUTER=http://<host>:8181 USER=root PASS=... scripts/scr
 
 All shots except `luci-login.png` are taken after logging in; the script fails a page that
 returns 404 or the login form, so a broken path cannot silently ship a blank screenshot.
+
+Compiled firmware images were removed from this repo to save space; all build/config/docs/scripts
+and project discoveries remain so the image can be rebuilt from source (`docs/build.md`, `scripts/build.sh`, configs/patches/notes).
